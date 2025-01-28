@@ -1,0 +1,32 @@
+[
+  {
+    "questionTxt": "",
+    "questionImg": "imgFruit1",
+    "options": ["Apple", "Strawberry", "Lemon", "Orange"],
+    "answer": "Strawberry"
+  },
+  {
+    "questionTxt": "",
+    "questionImg": "imgFruit2",
+    "options": ["Banana", "Apple", "Lemon", "Orange"],
+    "answer": "Lemon"
+  },
+  {
+    "questionTxt": "",
+    "questionImg": "imgFruit3",
+    "options": ["Apple", "Banana", "Strawberry", "Orange"],
+    "answer": "Apple"
+  },
+  {
+    "questionTxt": "",
+    "questionImg": "imgFruit4",
+    "options": ["Apple", "Banana", "Grapes", "Orange"],
+    "answer": "Grapes"
+  },
+  {
+    "questionTxt": "",
+    "questionImg": "imgFruit5",
+    "options": ["Strawberry", "Apple", "Grapes", "Banana"],
+    "answer": "Banana"
+  }
+]
