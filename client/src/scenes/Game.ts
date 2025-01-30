@@ -4,12 +4,12 @@ import socket from "../socket";
 
 export class Game extends Scene {
   background: GameObjects.Image | undefined;
-  imgPlayer1: GameObjects.Image | undefined;
-  imgPlayer2: GameObjects.Image | undefined;
-  imgMaskPlayer1: GameObjects.Image | undefined;
-  imgMaskPlayer2: GameObjects.Image | undefined;
-  sptDustPlayer1: GameObjects.Sprite | undefined;
-  sptDustPlayer2: GameObjects.Sprite | undefined;
+  imgHero: GameObjects.Image | undefined;
+  imgOpponent: GameObjects.Image | undefined;
+  imgMaskHero: GameObjects.Image | undefined;
+  imgMaskOpponent: GameObjects.Image | undefined;
+  sptDustHero: GameObjects.Sprite | undefined;
+  sptDustOpponent: GameObjects.Sprite | undefined;
   gameCamera: Phaser.Cameras.Scene2D.Camera | undefined;
   optionButtons: GameObjects.Container[] = [];
   questionBubble: GameObjects.Container | undefined;
@@ -17,6 +17,9 @@ export class Game extends Scene {
   playersTween: Phaser.Tweens.Tween | undefined
   player: String = '';
   enterBtn: GameObjects.Text;
+  prompt: GameObjects.Text;
+  timerEvent: Phaser.Time.TimerEvent;
+  indicator: GameObjects.Image;
 
   constructor() {
     super('Game');
@@ -43,21 +46,25 @@ export class Game extends Scene {
 
 
     this.background = this.add.image(0, 0, 'background').setOrigin(0.32, 0).setScale(0.9)
+    this.add.rectangle(Number(this.game.config.width) / 2, 100, Number(this.game.config.width) - 80, 30, 0xff0000).setScrollFactor(0)
+    this.indicator = this.add.image(Number(this.game.config.width) / 2, 100, 'imgIndicator').setOrigin(0.5).setScale(0.5).setScrollFactor(0).setAlpha(0);
 
-    this.imgPlayer1 = this.add.image(200, 1100, 'imgPlayer1').setDepth(100).setScale(1.5).setFlipX(true).setAlpha(0);
-    this.sptDustPlayer1 = this.add
+    console.log(Number(this.game.config.width) / 2)
+
+    this.imgHero = this.add.image(200, 1100, 'imgHero').setDepth(100).setScale(1.5).setFlipX(true).setAlpha(0);
+    this.sptDustHero = this.add
       .sprite(0, 0, "sptDust")
       .setOrigin(0)
       .setDepth(2000).setScale(2).setFlipX(true).setFrame(9);
 
-    this.imgPlayer2 = this.add.image(Number(this.game.config.width) - 200, 1100, 'imgPlayer2').setDepth(99).setScale(1.5).setAlpha(0);
-    this.sptDustPlayer2 = this.add
+    this.imgOpponent = this.add.image(Number(this.game.config.width) - 200, 1100, 'imgOpponent').setDepth(99).setScale(1.5).setAlpha(0);
+    this.sptDustOpponent = this.add
       .sprite(0, 0, "sptDust")
       .setOrigin(0)
       .setDepth(2000).setScale(2).setFrame(9);
 
     this.playersTween = this.tweens.add({
-      targets: [this.imgPlayer1, this.imgPlayer2],
+      targets: [this.imgHero, this.imgOpponent],
       scaleX: 1.45,
       scaleY: 1.55,
       y: 1095,
@@ -67,14 +74,13 @@ export class Game extends Scene {
       yoyo: true
     });
 
-    // this.gameCamera = this.cameras.main;
-    // this.gameCamera.startFollow(this.imgPlayer1, false, undefined, undefined, -100, 400).setZoom(1.4);
-    // this.gameCamera.setLerp(0.1, 0.1);
+    this.gameCamera = this.cameras.main;
+    this.gameCamera.setLerp(0.1, 0.1);
 
-
-
-    // await this.createQuestion()
-    // this.createAnswerPanel();
+    this.prompt = this.add.text(Number(this.game.config.width) / 2, 1350, "", {
+      fontSize: "42px",
+      padding: { x: 10, y: 5 },
+    }).setOrigin(0.5).setScrollFactor(0)
 
     this.enterBtn = this.add.text(Number(this.game.config.width) / 2, 1500, "Enter the Ring", {
       fontSize: "64px",
@@ -83,7 +89,7 @@ export class Game extends Scene {
     }).setInteractive({ useHandCursor: true })
       .on("pointerdown", () => {
         socket.emit("enterRing");
-      }).setOrigin(0.5)
+      }).setOrigin(0.5).setAlpha(0).setScrollFactor(0)
 
     socket.on("updateGamePlay", async (data) => {
       console.log(data)
@@ -97,10 +103,13 @@ export class Game extends Scene {
       }
       if (data.isOpponentEntered) {
         if ((this.player == "Player1" && !data.player2SocketId) || (this.player == "Player2" && !data.player1SocketId)) {
-          this.imgPlayer2?.setAlpha(0.5)
+          this.prompt.setText("Opponent lost connection. Waiting...")
+          this.imgOpponent?.setAlpha(0.5)
         } else {
-          this.imgPlayer2?.setAlpha(1)
+          this.imgOpponent?.setAlpha(1)
         }
+        if (!data.isFightStarted)
+          this.enterBtn.setAlpha(1)
       }
 
       if ((this.player == "Player1" && data.isPlayer1Ready) || (this.player == "Player2" && data.isPlayer2Ready)) {
@@ -108,63 +117,214 @@ export class Game extends Scene {
       }
 
       if (data.player) {
+        if (data.action == "Appears") {
+          if (this.player == "Player1") {
+            this.imgHero!.x = data.player1Position
+            this.imgOpponent!.x = Number(this.game.config.width) - data.player2Position
+            this.indicator!.x = 40 + ((data.player1Position + 550) / 200) * 100
+            console.log(this.indicator!.x)
+            console.log(data.player1Position)
+          } else if (this.player == "Player2") {
+            this.imgHero!.x = data.player2Position
+            this.imgOpponent!.x = Number(this.game.config.width) - data.player1Position
+            this.indicator!.x = 80 + ((data.player2Position + 550) / 200) * 100
+          }
+        }
+
+        if (data.action == "Attacks") {
+          if (this.player == "Player1") {
+            this.indicator!.x = 40 + ((data.player1Position + 550) / 200) * 100
+          } else if (this.player == "Player2") {
+            this.indicator!.x = 40 + ((data.player2Position + 550) / 200) * 100
+          }
+        }
+
+        if (data.action == "Enters") {
+          if (this.player == "Player1") {
+            this.indicator!.x = 40 + ((data.player1Position + 550) / 200) * 100
+          } else if (this.player == "Player2") {
+            this.indicator!.x = 40 + ((data.player2Position + 550) / 200) * 100
+          }
+        }
+
         if (this.player == data.player) {
           if (data.action == "Appears") {
-            if (!data.isOpponentEntered)
+            if (!data.isOpponentEntered) {
               await this.timeDelay(1000)
+              this.prompt.setText("Waiting for opponent...")
+            }
             this.heroAppears()
+            if (data.isFightStarted) {
+              this.gameCamera!.startFollow(this.imgHero!, false, undefined, undefined, -100, 100).setZoom(1);
+              this.indicator.setAlpha(1);
+              if (data.isGameEnded) {
+                this.prompt.setText("Game Finished!")
+              } else {
+                if (this.player == data.currentTurn) {
+                  this.prompt.setText("It's your move.")
+                  await this.createQuestion()
+                  this.createAnswerPanel();
+                } else if ((this.player == "Player1" && data.player2SocketId) || (this.player == "Player2" && data.player1SocketId)) {
+                  this.prompt.setText("Opponent is thinking... It's their turn.")
+                }
+              }
+            }
           }
           if (data.action == "Enters") {
+            this.prompt.setText("You are entering the ring...")
             this.heroIntro()
+            this.gameCamera!.startFollow(this.imgHero!, false, undefined, undefined, -100, 100).setZoom(1);
+            if (data.isPlayer1Ready && data.isPlayer2Ready) {
+              await this.timeDelay(1000)
+              this.prompt.setText("The toss is called!")
+              this.indicator.setAlpha(1);
+            }
+          }
+          if (data.action == "Attacks") {
+            this.prompt.setText("You are attacking.")
+            await this.heroAttack()
+            if (data.isGameEnded) {
+              this.prompt.setText("You Won!")
+            }
+            else {
+              if (this.player == data.currentTurn) {
+                this.prompt.setText("It's your move.")
+                this.currentQuestion = (this.currentQuestion + 1) % 5
+                await this.timeDelay(500)
+                await this.createQuestion()
+                this.createAnswerPanel();
+              } else {
+                this.prompt.setText("Opponent is thinking... It's their turn.")
+              }
+            }
+
+          }
+          if (data.action == "Misses") {
+            this.prompt.setText("You missed your chance.")
+            await this.timeDelay(1500)
+            if (this.player == data.currentTurn) {
+              this.prompt.setText("It's your move.")
+              this.currentQuestion = (this.currentQuestion + 1) % 5
+              await this.timeDelay(500)
+              await this.createQuestion()
+              this.createAnswerPanel();
+            } else {
+              this.prompt.setText("Opponent is thinking... It's their turn.")
+            }
           }
         } else {
           if (data.action == "Appears") {
+            if (!data.isFightStarted) {
+              this.prompt.setText("Opponent has joined!")
+            }
+            else {
+              this.prompt.setText("")
+            }
+
             await this.timeDelay(1000)
             this.opponentAppears()
+            if (data.isFightStarted && this.player != data.currentTurn) {
+              this.prompt.setText("Opponent is thinking... It's their turn.")
+            }
           }
           if (data.action == "Enters") {
+            this.prompt.setText("Opponent is entering the ring...")
             this.opponentIntro()
+            if (data.isPlayer1Ready && data.isPlayer2Ready) {
+              await this.timeDelay(1000)
+              this.prompt.setText("The toss is called!")
+              this.indicator.setAlpha(1);
+            }
+          }
+          if (data.action == "Attacks") {
+            this.prompt.setText("Opponent is attacking.")
+            await this.opponentAttack()
+            if (data.isGameEnded) {
+              this.prompt.setText("You Lost!")
+            } else {
+              if (this.player == data.currentTurn) {
+                this.prompt.setText("It's your move.")
+                this.currentQuestion = (this.currentQuestion + 1) % 5
+                await this.timeDelay(500)
+                await this.createQuestion()
+                this.createAnswerPanel();
+              } else {
+                this.prompt.setText("Opponent is thinking... It's their turn.")
+              }
+            }
+          }
+          if (data.action == "Misses") {
+            this.prompt.setText("Opponent missed their chance.")
+            await this.timeDelay(1500)
+            if (this.player == data.currentTurn) {
+              this.prompt.setText("It's your move.")
+              this.currentQuestion = (this.currentQuestion + 1) % 5
+              await this.timeDelay(500)
+              await this.createQuestion()
+              this.createAnswerPanel();
+            } else {
+              this.prompt.setText("Opponent is thinking... It's their turn.")
+            }
           }
         }
       }
+
+      if (data.currentTurn) {
+        if (this.player == data.currentTurn) {
+          if (data.action == "Fight Started") {
+            this.prompt.setText("You win the toss! It's your move.")
+            await this.timeDelay(1000)
+            await this.createQuestion()
+            this.createAnswerPanel();
+          }
+        } else {
+          if (data.action == "Fight Started") {
+            this.prompt.setText("Opponent wins the toss! It's their turn.")
+            await this.timeDelay(1000)
+            this.prompt.setText("Opponent is thinking... It's their turn.")
+          }
+        }
+      }
+
+
     });
 
   }
 
   update() {
-    if (this.sptDustPlayer1 && this.imgPlayer1) {
-      this.sptDustPlayer1!.y = this.imgPlayer1!.y - 50
-      this.sptDustPlayer1!.x = this.imgPlayer1!.x - 200
+    if (this.sptDustHero && this.imgHero) {
+      this.sptDustHero!.y = this.imgHero!.y - 50
+      this.sptDustHero!.x = this.imgHero!.x - 200
     }
-    if (this.imgMaskPlayer1 && this.imgPlayer1) {
-      this.imgMaskPlayer1!.y = this.imgPlayer1!.y
-      this.imgMaskPlayer1!.x = this.imgPlayer1!.x
+    if (this.imgMaskHero && this.imgHero) {
+      this.imgMaskHero!.y = this.imgHero!.y
+      this.imgMaskHero!.x = this.imgHero!.x
     }
 
-    if (this.sptDustPlayer2 && this.imgPlayer2) {
-      this.sptDustPlayer2!.y = this.imgPlayer2!.y - 50
-      this.sptDustPlayer2!.x = this.imgPlayer2!.x
+    if (this.sptDustOpponent && this.imgOpponent) {
+      this.sptDustOpponent!.y = this.imgOpponent!.y - 50
+      this.sptDustOpponent!.x = this.imgOpponent!.x
     }
-    if (this.imgMaskPlayer2 && this.imgPlayer2) {
-      this.imgMaskPlayer2!.y = this.imgPlayer2!.y
-      this.imgMaskPlayer2!.x = this.imgPlayer2!.x
+    if (this.imgMaskOpponent && this.imgOpponent) {
+      this.imgMaskOpponent!.y = this.imgOpponent!.y
+      this.imgMaskOpponent!.x = this.imgOpponent!.x
     }
   }
 
   heroIntro() {
-    this.sptDustPlayer1!.play("animDust2");
-    this.movePlayer([this.imgPlayer1], 250, 'Expo')
+    this.sptDustHero!.play("animDust2");
+    this.movePlayer([this.imgHero], 250, 'Expo')
   }
 
   opponentIntro() {
-    this.sptDustPlayer2!.play("animDust2");
-    this.movePlayer([this.imgPlayer2], -250, 'Expo')
+    this.sptDustOpponent!.play("animDust2");
+    this.movePlayer([this.imgOpponent], -250, 'Expo')
   }
 
   heroAppears() {
-    this.imgPlayer1?.setAlpha(1)
+    this.imgHero?.setAlpha(1)
     this.tweens.add({
-      targets: [this.imgPlayer1],
+      targets: [this.imgHero],
       alpha: 0,
       ease: 'Linear',
       duration: 100,
@@ -174,9 +334,9 @@ export class Game extends Scene {
   }
 
   opponentAppears() {
-    this.imgPlayer2?.setAlpha(1)
+    this.imgOpponent?.setAlpha(1)
     this.tweens.add({
-      targets: [this.imgPlayer2],
+      targets: [this.imgOpponent],
       alpha: 0,
       ease: 'Linear',
       duration: 100,
@@ -354,9 +514,39 @@ export class Game extends Scene {
       this.optionButtons.push(buttonContainer);
     }
     this.bubbleUp(this.optionButtons, 0.9, 0.9)
+    let remainingTime = 10
+    this.timerEvent = this.time.addEvent({
+      delay: 1000,
+      callback: async () => {
+        remainingTime--;
+        this.questionBubble?.getByName('TIMER').setText(`${remainingTime}s`);
+        if (remainingTime <= 0) {
+          this.timerEvent.remove();
+          this.questionBubble?.getByName('TIMER').setText(`${remainingTime}s`);
+          this.imgMaskHero = this.add.image(0, 0, 'imgMask6').setDepth(100).setScale(0.4);
+          this.imgMaskOpponent = this.add.image(0, 0, 'imgMask5').setDepth(100).setScale(0.4).setFlipX(true);
+
+          await this.timeDelay(1500)
+          await this.bubbleDown([this.questionBubble])
+          await this.timeDelay(500)
+          await this.bubbleDown(this.optionButtons)
+          // await this.cameraZoomIn()
+          await this.timeDelay(1000)
+          this.imgMaskHero.destroy()
+          this.imgMaskOpponent.destroy()
+          this.questionBubble!.destroy()
+          this.optionButtons.forEach((option) => option.destroy())
+          this.optionButtons = []
+
+          socket.emit("miss");
+        }
+      },
+      loop: true
+    });
   }
 
   async clickOption(optionIndex: number) {
+    this.timerEvent.remove();
     if (questions[this.currentQuestion].options[optionIndex] === questions[this.currentQuestion].answer) {
       const resultImg: GameObjects.Image = this.optionButtons[optionIndex].getByName("result")
       resultImg.setScale(0.25)
@@ -372,53 +562,67 @@ export class Game extends Scene {
       option.getByName("image").removeInteractive()
     })
     if (questions[this.currentQuestion].options[optionIndex] === questions[this.currentQuestion].answer) {
-      this.imgMaskPlayer1 = this.add.image(0, 0, 'imgMask5').setDepth(100).setScale(0.4);
-      this.imgMaskPlayer2 = this.add.image(0, 0, 'imgMask6').setDepth(100).setScale(0.4).setFlipX(true);
+      this.imgMaskHero = this.add.image(0, 0, 'imgMask5').setDepth(100).setScale(0.4);
+      this.imgMaskOpponent = this.add.image(0, 0, 'imgMask6').setDepth(100).setScale(0.4).setFlipX(true);
     } else {
-      this.imgMaskPlayer1 = this.add.image(0, 0, 'imgMask6').setDepth(100).setScale(0.4);
-      this.imgMaskPlayer2 = this.add.image(0, 0, 'imgMask5').setDepth(100).setScale(0.4).setFlipX(true);
+      this.imgMaskHero = this.add.image(0, 0, 'imgMask6').setDepth(100).setScale(0.4);
+      this.imgMaskOpponent = this.add.image(0, 0, 'imgMask5').setDepth(100).setScale(0.4).setFlipX(true);
     }
     await this.timeDelay(1500)
     await this.bubbleDown([this.questionBubble])
     await this.timeDelay(500)
     await this.bubbleDown(this.optionButtons)
-    await this.cameraZoomIn()
+    // await this.cameraZoomIn()
     await this.timeDelay(1500)
-    this.imgMaskPlayer1.destroy()
-    this.imgMaskPlayer2.destroy()
-    if (questions[this.currentQuestion].options[optionIndex] === questions[this.currentQuestion].answer) {
-      this.sptDustPlayer1!.play("animDust");
-      this.sptDustPlayer2!.play("animDust2");
-      this.imgMaskPlayer1 = this.add.image(0, 0, 'imgMask2').setDepth(100).setScale(0.4);
-      this.imgMaskPlayer2 = this.add.image(0, 0, 'imgMask1').setDepth(100).setScale(0.4).setFlipX(true);
-    } else {
-      this.sptDustPlayer2!.play("animDust");
-      this.sptDustPlayer1!.play("animDust2");
-      this.imgMaskPlayer1 = this.add.image(0, 0, 'imgMask1').setDepth(100).setScale(0.4);
-      this.imgMaskPlayer2 = this.add.image(0, 0, 'imgMask2').setDepth(100).setScale(0.4).setFlipX(true);
-    }
-
-    this.movePlayer([this.imgPlayer1], questions[this.currentQuestion].options[optionIndex] === questions[this.currentQuestion].answer ? 200 : -200, questions[this.currentQuestion].options[optionIndex] === questions[this.currentQuestion].answer ? 'Expo' : 'Back')
-    await this.movePlayer([this.imgPlayer2], questions[this.currentQuestion].options[optionIndex] === questions[this.currentQuestion].answer ? 200 : -200, questions[this.currentQuestion].options[optionIndex] === questions[this.currentQuestion].answer ? 'Back' : 'Expo')
-    await this.timeDelay(1000)
-    this.imgMaskPlayer1.destroy()
-    this.imgMaskPlayer2.destroy()
+    this.imgMaskHero.destroy()
+    this.imgMaskOpponent.destroy()
     this.questionBubble!.destroy()
     this.optionButtons.forEach((option) => option.destroy())
     this.optionButtons = []
-    this.currentQuestion = (this.currentQuestion + 1) % 5
-    await this.timeDelay(500)
-    await this.createQuestion()
-    this.createAnswerPanel();
+    if (questions[this.currentQuestion].options[optionIndex] === questions[this.currentQuestion].answer) {
+      socket.emit("attack");
+    } else {
+      socket.emit("miss");
+    }
+  }
+
+  async heroAttack() {
+    this.sptDustHero!.play("animDust");
+    this.sptDustOpponent!.play("animDust2");
+    this.imgMaskHero = this.add.image(0, 0, 'imgMask2').setDepth(100).setScale(0.4);
+    this.imgMaskOpponent = this.add.image(0, 0, 'imgMask1').setDepth(100).setScale(0.4).setFlipX(true);
+    this.movePlayer([this.imgHero], 200, 'Expo')
+    await this.movePlayer([this.imgOpponent], 200, 'Back')
+    await this.timeDelay(1000)
+    this.imgMaskHero.destroy()
+    this.imgMaskOpponent.destroy()
+  }
+
+  async opponentAttack() {
+    this.sptDustOpponent!.play("animDust");
+    this.sptDustHero!.play("animDust2");
+    this.imgMaskHero = this.add.image(0, 0, 'imgMask1').setDepth(100).setScale(0.4);
+    this.imgMaskOpponent = this.add.image(0, 0, 'imgMask2').setDepth(100).setScale(0.4).setFlipX(true);
+    this.movePlayer([this.imgHero], -200, 'Back')
+    await this.movePlayer([this.imgOpponent], -200, 'Expo')
+    await this.timeDelay(1000)
+    this.imgMaskHero.destroy()
+    this.imgMaskOpponent.destroy()
   }
 
   async createQuestion() {
     await this.timeDelay(1000)
-    await this.cameraZoomOut()
+    // await this.cameraZoomOut()
     const imgQuestionBubble = this.add.image(0, - 400, 'imgQuestionBubble').setDepth(100).setScale(0.9);
     const imgQuestionImage = this.add.image(0, - 400, questions[this.currentQuestion].questionImg).setDepth(100).setScale(0.4);
+    const imgQuestionTimer = this.add.text(0, -640, "10s", {
+      fontFamily: 'Arial',
+      color: '#000',
+      fontSize: "64px",
+      padding: { x: 10, y: 5 },
+    }).setOrigin(0.5).setName('TIMER')
 
-    this.questionBubble = this.add.container(this.imgPlayer1!.x, this.imgPlayer1!.y, [imgQuestionBubble, imgQuestionImage]).setScale(0)
+    this.questionBubble = this.add.container(this.imgHero!.x, this.imgHero!.y, [imgQuestionBubble, imgQuestionImage, imgQuestionTimer]).setScale(0)
     await this.timeDelay(500)
     await this.bubbleUp([this.questionBubble], 0.9, 0.9)
 

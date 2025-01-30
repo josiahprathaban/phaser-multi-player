@@ -15,13 +15,14 @@ const PORT = 3000;
 
 let player1Socket = null;
 let player2Socket = null;
-let player1Position = 0;
-let player2Position = 0;
+let player1Position = 200;
+let player2Position = 200;
 let isPlayer1Ready = false;
 let isPlayer2Ready = false;
 let isOpponentEntered = false;
 let isFightStarted = false;
-let currentTurn = 0;
+let currentTurn = null;
+let isGameEnded = false;
 
 let player2IsBot = false;
 let botInterval = null;
@@ -46,6 +47,8 @@ io.on("connection", (socket) => {
         isPlayer2Ready: isPlayer2Ready,
         player: "Player1",
         action: "Appears",
+        currentTurn: currentTurn,
+        isGameEnded: isGameEnded,
       });
   } else if (!player2Socket) {
     if (!isOpponentEntered && player1Socket) {
@@ -64,6 +67,8 @@ io.on("connection", (socket) => {
         isPlayer2Ready: isPlayer2Ready,
         player: "Player2",
         action: "Appears",
+        currentTurn: currentTurn,
+        isGameEnded: isGameEnded,
       });
   }
 
@@ -80,6 +85,8 @@ io.on("connection", (socket) => {
         isPlayer2Ready: isPlayer2Ready,
         player: "Player1",
         action: "Appears",
+        currentTurn: currentTurn,
+        isGameEnded: isGameEnded,
       });
     } else if (socket === player2Socket) {
       player2Socket.emit("updateGamePlay", {
@@ -93,6 +100,84 @@ io.on("connection", (socket) => {
         isPlayer2Ready: isPlayer2Ready,
         player: "Player2",
         action: "Appears",
+        currentTurn: currentTurn,
+        isGameEnded: isGameEnded,
+      });
+    }
+  });
+
+  socket.on("attack", () => {
+    if (socket === player1Socket) {
+      player1Position += 200;
+      player2Position -= 200;
+      isGameEnded = player1Position > 1400;
+      currentTurn = "Player2";
+      io.emit("updateGamePlay", {
+        isOpponentEntered: isOpponentEntered,
+        isFightStarted: isFightStarted,
+        player1Position: player1Position,
+        player2Position: player2Position,
+        player1SocketId: player1Socket ? player1Socket.id : null,
+        player2SocketId: player2Socket ? player2Socket.id : null,
+        isPlayer1Ready: isPlayer1Ready,
+        isPlayer2Ready: isPlayer2Ready,
+        player: "Player1",
+        action: "Attacks",
+        currentTurn: currentTurn,
+        isGameEnded: isGameEnded,
+      });
+    } else if (socket === player2Socket) {
+      player1Position -= 200;
+      player2Position += 200;
+      isGameEnded = player2Position > 1400;
+      currentTurn = "Player1";
+      io.emit("updateGamePlay", {
+        isOpponentEntered: isOpponentEntered,
+        isFightStarted: isFightStarted,
+        player1Position: player1Position,
+        player2Position: player2Position,
+        player1SocketId: player1Socket ? player1Socket.id : null,
+        player2SocketId: player2Socket ? player2Socket.id : null,
+        isPlayer1Ready: isPlayer1Ready,
+        isPlayer2Ready: isPlayer2Ready,
+        player: "Player2",
+        action: "Attacks",
+        currentTurn: currentTurn,
+        isGameEnded: isGameEnded,
+      });
+    }
+  });
+
+  socket.on("miss", () => {
+    if (socket === player1Socket) {
+      currentTurn = "Player2";
+      io.emit("updateGamePlay", {
+        isOpponentEntered: isOpponentEntered,
+        isFightStarted: isFightStarted,
+        player1Position: player1Position,
+        player2Position: player2Position,
+        player1SocketId: player1Socket ? player1Socket.id : null,
+        player2SocketId: player2Socket ? player2Socket.id : null,
+        isPlayer1Ready: isPlayer1Ready,
+        isPlayer2Ready: isPlayer2Ready,
+        player: "Player1",
+        action: "Misses",
+        currentTurn: currentTurn,
+      });
+    } else if (socket === player2Socket) {
+      currentTurn = "Player1";
+      io.emit("updateGamePlay", {
+        isOpponentEntered: isOpponentEntered,
+        isFightStarted: isFightStarted,
+        player1Position: player1Position,
+        player2Position: player2Position,
+        player1SocketId: player1Socket ? player1Socket.id : null,
+        player2SocketId: player2Socket ? player2Socket.id : null,
+        isPlayer1Ready: isPlayer1Ready,
+        isPlayer2Ready: isPlayer2Ready,
+        player: "Player2",
+        action: "Misses",
+        currentTurn: currentTurn,
       });
     }
   });
@@ -100,7 +185,26 @@ io.on("connection", (socket) => {
   socket.on("enterRing", () => {
     if (socket === player1Socket) {
       isPlayer1Ready = true;
-      if (isPlayer1Ready && isPlayer2Ready) isFightStarted = true;
+      player1Position += 250;
+      if (isPlayer1Ready && isPlayer2Ready) {
+        setTimeout(() => {
+          isFightStarted = true;
+          currentTurn = "Player1";
+          io.emit("updateGamePlay", {
+            isOpponentEntered: isOpponentEntered,
+            isFightStarted: isFightStarted,
+            player1Position: player1Position,
+            player2Position: player2Position,
+            player1SocketId: player1Socket ? player1Socket.id : null,
+            player2SocketId: player2Socket ? player2Socket.id : null,
+            isPlayer1Ready: isPlayer1Ready,
+            isPlayer2Ready: isPlayer2Ready,
+            player: null,
+            action: "Fight Started",
+            currentTurn: currentTurn,
+          });
+        }, 2000);
+      }
       io.emit("updateGamePlay", {
         isOpponentEntered: isOpponentEntered,
         isFightStarted: isFightStarted,
@@ -112,10 +216,30 @@ io.on("connection", (socket) => {
         isPlayer2Ready: isPlayer2Ready,
         player: "Player1",
         action: "Enters",
+        currentTurn: currentTurn,
       });
     } else if (socket === player2Socket) {
       isPlayer2Ready = true;
-      if (isPlayer1Ready && isPlayer2Ready) isFightStarted = true;
+      player2Position += 250;
+      if (isPlayer1Ready && isPlayer2Ready) {
+        setTimeout(() => {
+          isFightStarted = true;
+          currentTurn = "Player1";
+          io.emit("updateGamePlay", {
+            isOpponentEntered: isOpponentEntered,
+            isFightStarted: isFightStarted,
+            player1Position: player1Position,
+            player2Position: player2Position,
+            player1SocketId: player1Socket ? player1Socket.id : null,
+            player2SocketId: player2Socket ? player2Socket.id : null,
+            isPlayer1Ready: isPlayer1Ready,
+            isPlayer2Ready: isPlayer2Ready,
+            player: null,
+            action: "Fight Started",
+            currentTurn: currentTurn,
+          });
+        }, 2000);
+      }
       io.emit("updateGamePlay", {
         isOpponentEntered: isOpponentEntered,
         isFightStarted: isFightStarted,
@@ -127,6 +251,7 @@ io.on("connection", (socket) => {
         isPlayer2Ready: isPlayer2Ready,
         player: "Player2",
         action: "Enters",
+        currentTurn: currentTurn,
       });
     }
   });
