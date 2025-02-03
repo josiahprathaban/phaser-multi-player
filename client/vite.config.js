@@ -10,6 +10,11 @@ export default defineConfig({
                 changeOrigin: true,
             },
         },
+        host: '0.0.0.0', // Ensure Vite listens on all network interfaces
+        port: process.env.PORT || 8080, // Use DigitalOcean's PORT
+    },
+    preview: {
+        allowedHosts: ['lobster-app-e6kaq.ondigitalocean.app'], // Add your DigitalOcean domain here
     },
     build: {
         outDir: 'dist',
