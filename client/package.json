@@ -7,7 +7,7 @@
     "dev": "vite",
     "build": "vite build",
     "serve": "vite preview",
-    "start": "vite"
+    "start": "vite preview --port 8080 --host"
   },
   "keywords": [],
   "author": "",
