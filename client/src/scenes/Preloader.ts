@@ -39,7 +39,7 @@ export class Preloader extends Scene {
     this.load.image('imgFruit4', 'fruit-4.png');
     this.load.image('imgFruit5', 'fruit-5.png');
     this.load.image('imgTimer', 'timer.png');
-    this.load.image('imgIndicator', 'indicator.png');
+    this.load.image('imgIndicator', 'indi.png');
 
     this.load.image('imgCorrect', 'correct.png');
     this.load.image('imgWrong', 'wrong.png');
@@ -50,6 +50,8 @@ export class Preloader extends Scene {
     this.load.image('imgMask4', 'masks/M0090.png');
     this.load.image('imgMask5', 'masks/M0010.png');
     this.load.image('imgMask6', 'masks/M0030.png');
+    this.load.image('imgMask7', 'masks/M0031.png');
+    this.load.image('imgMask8', 'masks/M0012.png');
 
 
     this.load.spritesheet(
