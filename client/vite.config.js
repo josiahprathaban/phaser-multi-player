@@ -1,15 +1,22 @@
 import { defineConfig } from 'vite';
 
 export default defineConfig({
-    root: '.', // Ensure Vite starts from project root
     server: {
-        host: '0.0.0.0', // Required for DigitalOcean
-        port: process.env.PORT || 8080, // Use DigitalOcean's assigned port
+        open: true,
+        proxy: {
+            '/socket.io': {
+                target: 'http://localhost:3000',
+                ws: true,
+                changeOrigin: true,
+            },
+        },
+        host: '0.0.0.0', // Ensure Vite listens on all network interfaces
+        port: process.env.PORT || 8080, // Use DigitalOcean's PORT
     },
     preview: {
-        allowedHosts: ['lobster-app-e6kaq.ondigitalocean.app'], // Allow DigitalOcean domain
+        allowedHosts: ['lobster-app-e6kaq.ondigitalocean.app'], // Add your DigitalOcean domain here
     },
     build: {
-        outDir: 'dist', // Ensure built files go into "dist"
+        outDir: 'dist',
     },
 });
