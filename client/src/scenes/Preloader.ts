@@ -29,6 +29,7 @@ export class Preloader extends Scene {
     this.load.setPath('assets/phaserGames');
 
     this.load.image('background', 'bg.png');
+    this.load.image('background2', 'bg2.png');
     this.load.image('imgHero', 'player-1.png');
     this.load.image('imgOpponent', 'player-2.png');
     this.load.image('imgQuestionBubble', 'question-bubble.png');

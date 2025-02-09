@@ -2,6 +2,8 @@ import { Boot } from './scenes/Boot';
 import { Game as MainGame } from './scenes/Game';
 import { Game as MainGameV0 } from './scenes/GameV0';
 import { Game as MainGameV1 } from './scenes/GameV1';
+import { Game as MainGameV2 } from './scenes/GameV2';
+import { Game as MainGameV3 } from './scenes/GameV3';
 import { AUTO, Game, Scale } from 'phaser';
 import { Preloader } from './scenes/Preloader';
 
@@ -18,6 +20,12 @@ switch (version) {
     break;
   case "1":
     GameTest = MainGameV1
+    break;
+  case "2":
+    GameTest = MainGameV2
+    break;
+  case "3":
+    GameTest = MainGameV3
     break;
   default:
     GameTest = MainGame

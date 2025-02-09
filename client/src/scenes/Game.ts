@@ -1,3 +1,5 @@
+// V4 Choice of attack
+
 import { GameObjects, Scene } from "phaser";
 import questions from "../questions.json";
 
@@ -20,12 +22,23 @@ export class Game extends Scene {
   prompt: GameObjects.Text;
   indicator: GameObjects.Image;
   isGameEnded: Boolean = false;
+  theme: String
+  barWidth: number = 500;
+  barHeight: number = 15;
+  heroProgressBar: GameObjects.Graphics;
+  heroProgressBarBg: GameObjects.Rectangle;
+  heroTimer: Phaser.Time.TimerEvent;
+  heroProgress: number = 0;
+  opponentProgress: number = 0;
+  opponentTimer: Phaser.Time.TimerEvent;
 
   constructor() {
     super("Game");
   }
 
   async create() {
+    const params = new URLSearchParams(window.location.search);
+    this.theme = params.get('theme') ?? "market";
     // animations
     this.anims.create({
       key: "animDust",
@@ -43,8 +56,8 @@ export class Game extends Scene {
     });
 
     this.background = this.add
-      .image(0, 0, "background")
-      .setOrigin(0.32, 0)
+      .image(0, 0, this.theme == "study" ? "background2" : "background")
+      .setOrigin(0.32, 0.2)
       .setScale(0.9);
     this.add
       .rectangle(
@@ -58,9 +71,9 @@ export class Game extends Scene {
     this.add
       .rectangle(
         Number(this.game.config.width) / 2,
-        1700,
+        1600,
         Number(this.game.config.width),
-        600,
+        700,
         0xf9dcb0
       )
       .setScrollFactor(0);
@@ -144,6 +157,79 @@ export class Game extends Scene {
       .on("pointerdown", () => {
         this.start();
       });
+
+    this.heroProgressBar = this.add.graphics().setDepth(999).setScrollFactor(0);
+
+    this.heroProgressBarBg = this.add.rectangle(
+      Number(this.game.config.width) / 2, 1400,
+      this.barWidth + 12, this.barHeight + 10,
+      0xffffff
+    ).setScrollFactor(0).setVisible(false)
+
+
+  }
+
+  startHeroTimer(duration: number) {
+    this.heroProgressBarBg.visible = true
+    this.heroTimer = this.time.addEvent({
+      delay: 20,
+      repeat: duration * 50,
+      callback: async () => {
+        this.heroProgress += 1 / (duration * 50);
+        this.heroProgressBar.clear();
+        this.heroProgressBar.fillStyle(0x00ff00, 1);
+        this.heroProgressBar.fillRect(Number(this.game.config.width) / 2 - this.barWidth / 2, 1393, this.barWidth * this.heroProgress, this.barHeight);
+
+        if (this.heroProgress >= 1) {
+          this.heroProgressBar.clear()
+          this.heroProgress = 0
+          this.heroProgressBarBg.visible = false
+          this.heroTimer.destroy()
+          this.currentQuestion = (this.currentQuestion + 1) % 5
+          await this.createQuestion();
+          this.createAnswerPanel();
+        }
+      },
+      callbackScope: this,
+    });
+  }
+
+  startOpponentTimer(duration: number) {
+    this.imgOpponentThinking!.setAlpha(1);
+    this.opponentTimer = this.time.addEvent({
+      delay: 20,
+      repeat: duration * 50,
+      callback: async () => {
+        this.opponentProgress += 1 / (duration * 50);
+        if (this.opponentProgress >= 1) {
+          this.opponentProgress = 0
+          this.opponentTimer.destroy()
+          const params = new URLSearchParams(window.location.search);
+          const bot_vocab_accuracy = params.get('bot_vocab_accuracy') ?? 0.5;
+          this.imgOpponentThinking!.setAlpha(0);
+          if (Math.random() < Math.min(Number(bot_vocab_accuracy), 1)) {
+            await this.opponentAttack();
+          } else {
+            if (this.imgMaskOpponent) {
+              this.imgMaskOpponent.destroy();
+            }
+            this.imgMaskOpponent = this.add
+              .image(0, 0, "imgMask6")
+              .setDepth(100)
+              .setScale(0.4)
+              .setFlipX(true);
+            await this.timeDelay(1000);
+            this.imgMaskOpponent.destroy();
+          }
+          if (this.imgHero!.x < -500) {
+            this.opponentWins();
+          } else if (!this.isGameEnded) {
+            this.opponentMove();
+          }
+        }
+      },
+      callbackScope: this,
+    });
   }
 
   async start() {
@@ -349,11 +435,10 @@ export class Game extends Scene {
   }
 
   createAnswerPanel() {
-    console.log(this.imgHero!.x);
     const buttonSpacingX = Number(this.game.config.width) / 4 - 10;
     const buttonSpacingY = 200;
     const startX = Number(this.game.config.width) / 2 - buttonSpacingX;
-    const startY = Number(this.game.config.height) - 350;
+    const startY = Number(this.game.config.height) - 520;
 
     for (let i = 0; i < 4; i++) {
       const col = i % 2;
@@ -444,17 +529,12 @@ export class Game extends Scene {
     this.optionButtons.forEach((option) => {
       option.getByName("image").removeInteractive();
     });
+
     if (
       questions[this.currentQuestion].options[optionIndex] ===
       questions[this.currentQuestion].answer
     ) {
-      if (this.imgMaskHero) {
-        this.imgMaskHero.destroy();
-      }
-      this.imgMaskHero = this.add
-        .image(0, 0, "imgMask5")
-        .setDepth(100)
-        .setScale(0.4);
+      await this.heroAttack();
     } else {
       if (this.imgMaskHero) {
         this.imgMaskHero.destroy();
@@ -463,19 +543,12 @@ export class Game extends Scene {
         .image(0, 0, "imgMask6")
         .setDepth(100)
         .setScale(0.4);
-    }
-    await this.timeDelay(500);
-    await this.destroyQuestion()
-    if (
-      questions[this.currentQuestion].options[optionIndex] ===
-      questions[this.currentQuestion].answer
-    ) {
-      await this.heroAttack();
+      await this.timeDelay(500);
+      await this.destroyQuestion()
     }
     if (this.imgHero!.x > 1400) {
       this.heroWins();
     } else if (!this.isGameEnded) {
-      console.log("hello humakre")
       this.heroMove();
     }
   }
@@ -490,40 +563,26 @@ export class Game extends Scene {
   }
 
   async heroMove() {
-    this.currentQuestion = (this.currentQuestion + 1) % 5
-    await this.createQuestion();
-    this.createAnswerPanel();
+    this.startHeroTimer(2);
   }
 
   async opponentMove() {
-    const params = new URLSearchParams(window.location.search);
-    const bot_vocab_accuracy = params.get('bot_vocab_accuracy') ?? 0.5;
-    await this.timeDelay(2000);
-    this.imgOpponentThinking!.setAlpha(1);
-    await this.timeDelay(2000);
-    this.imgOpponentThinking!.setAlpha(0);
-    if (Math.random() < Math.min(Number(bot_vocab_accuracy), 1)) {
-      await this.opponentAttack();
-    } else {
-      if (this.imgMaskOpponent) {
-        this.imgMaskOpponent.destroy();
-      }
-      this.imgMaskOpponent = this.add
-        .image(0, 0, "imgMask6")
-        .setDepth(100)
-        .setScale(0.4)
-        .setFlipX(true);
-      await this.timeDelay(1000);
-      this.imgMaskOpponent.destroy();
-    }
-    if (this.imgHero!.x < -500) {
-      this.opponentWins();
-    } else if (!this.isGameEnded) {
-      this.opponentMove();
-    }
+    this.startOpponentTimer(5)
   }
 
   async heroAttack() {
+    if (this.opponentTimer) {
+      this.opponentTimer.paused = true
+    }
+    if (this.imgMaskHero) {
+      this.imgMaskHero.destroy();
+    }
+    this.imgMaskHero = this.add
+      .image(0, 0, "imgMask5")
+      .setDepth(100)
+      .setScale(0.4);
+    await this.timeDelay(500);
+    await this.destroyQuestion()
     this.sptDustHero!.play("animDust");
     this.sptDustOpponent!.play("animDust2");
     if (this.imgMaskHero) {
@@ -541,16 +600,38 @@ export class Game extends Scene {
       .setDepth(100)
       .setScale(0.4)
       .setFlipX(true);
-    this.movePlayer([this.imgHero], 200, "Expo");
-    await this.movePlayer([this.imgOpponent], 200, "Back");
+    let power = 200
+    if (this.imgHero!.x < -250) {
+      power = 600
+    } else if (this.imgHero!.x < 0) {
+      power = 500
+    } else if (this.imgHero!.x < 200) {
+      power = 400
+    } else if (this.imgHero!.x < 350) {
+      power = 300
+    } else if (this.imgHero!.x < 450) {
+      power = 200
+    } else {
+      power = 200
+    }
+    this.movePlayer([this.imgHero], power, "Expo");
+    await this.movePlayer([this.imgOpponent], power, "Back");
     this.indicator!.x = 40 + ((this.imgHero!.x + 550) / 200) * 100;
     await this.timeDelay(1000);
     this.imgOpponent!.x = this.imgHero!.x + 180
     this.imgMaskHero.destroy();
     this.imgMaskOpponent.destroy();
+    if (this.opponentTimer) {
+      this.opponentTimer.paused = false
+    }
   }
 
   async opponentAttack() {
+    if (this.heroTimer) {
+      this.heroTimer.paused = true
+    }
+    this.questionBubble?.setAlpha(0.5);
+    this.optionButtons.forEach((option) => { option.setAlpha(0.5), option.getByName("image").removeInteractive() });
     this.sptDustOpponent!.play("animDust");
     this.sptDustHero!.play("animDust2");
     if (this.imgMaskHero) {
@@ -568,13 +649,33 @@ export class Game extends Scene {
       .setDepth(100)
       .setScale(0.4)
       .setFlipX(true);
-    this.movePlayer([this.imgHero], -200, "Back");
-    await this.movePlayer([this.imgOpponent], -200, "Expo");
+
+    let power = 200
+    if (this.imgHero!.x > 1150) {
+      power = 600
+    } else if (this.imgHero!.x > 900) {
+      power = 500
+    } else if (this.imgHero!.x > 700) {
+      power = 400
+    } else if (this.imgHero!.x > 550) {
+      power = 300
+    } else if (this.imgHero!.x > 450) {
+      power = 200
+    } else {
+      power = 200
+    }
+    this.movePlayer([this.imgHero], -power, "Back");
+    await this.movePlayer([this.imgOpponent], -power, "Expo");
     this.indicator!.x = 40 + ((this.imgHero!.x + 550) / 200) * 100;
     await this.timeDelay(1000);
     this.imgOpponent!.x = this.imgHero!.x + 180
     this.imgMaskHero.destroy();
     this.imgMaskOpponent.destroy();
+    if (this.heroTimer) {
+      this.heroTimer.paused = false
+    }
+    this.questionBubble?.setAlpha(1);
+    this.optionButtons.forEach((option) => { option.setAlpha(1), option.getByName("image").setInteractive({ useHandCursor: true }) });
   }
 
   async createQuestion() {

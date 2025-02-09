@@ -3,30 +3,35 @@
     "questionTxt": "",
     "questionImg": "imgFruit1",
     "options": ["Apple", "Strawberry", "Lemon", "Orange"],
-    "answer": "Strawberry"
+    "answer": "Strawberry",
+    "theme": "market"
   },
   {
     "questionTxt": "",
     "questionImg": "imgFruit2",
     "options": ["Banana", "Apple", "Lemon", "Orange"],
-    "answer": "Lemon"
+    "answer": "Lemon",
+    "theme": "market"
   },
   {
     "questionTxt": "",
     "questionImg": "imgFruit3",
     "options": ["Apple", "Banana", "Strawberry", "Orange"],
-    "answer": "Apple"
+    "answer": "Apple",
+    "theme": "market"
   },
   {
     "questionTxt": "",
     "questionImg": "imgFruit4",
     "options": ["Apple", "Banana", "Grapes", "Orange"],
-    "answer": "Grapes"
+    "answer": "Grapes",
+    "theme": "market"
   },
   {
     "questionTxt": "",
     "questionImg": "imgFruit5",
     "options": ["Strawberry", "Apple", "Grapes", "Banana"],
-    "answer": "Banana"
+    "answer": "Banana",
+    "theme": "market"
   }
 ]

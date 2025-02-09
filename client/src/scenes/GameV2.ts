@@ -1,4 +1,4 @@
-// V1 Game Time Base basic
+// V2 advantage of weeker player
 
 import { GameObjects, Scene } from "phaser";
 import questions from "../questions.json";
@@ -22,12 +22,15 @@ export class Game extends Scene {
   prompt: GameObjects.Text;
   indicator: GameObjects.Image;
   isGameEnded: Boolean = false;
+  theme: String
 
   constructor() {
     super("Game");
   }
 
   async create() {
+    const params = new URLSearchParams(window.location.search);
+    this.theme = params.get('theme') ?? "market";
     // animations
     this.anims.create({
       key: "animDust",
@@ -45,8 +48,8 @@ export class Game extends Scene {
     });
 
     this.background = this.add
-      .image(0, 0, "background")
-      .setOrigin(0.32, 0)
+      .image(0, 0, this.theme == "study" ? "background2" : "background")
+      .setOrigin(0.32, 0.2)
       .setScale(0.9);
     this.add
       .rectangle(
@@ -60,9 +63,9 @@ export class Game extends Scene {
     this.add
       .rectangle(
         Number(this.game.config.width) / 2,
-        1700,
+        1600,
         Number(this.game.config.width),
-        600,
+        700,
         0xf9dcb0
       )
       .setScrollFactor(0);
@@ -354,7 +357,7 @@ export class Game extends Scene {
     const buttonSpacingX = Number(this.game.config.width) / 4 - 10;
     const buttonSpacingY = 200;
     const startX = Number(this.game.config.width) / 2 - buttonSpacingX;
-    const startY = Number(this.game.config.height) - 350;
+    const startY = Number(this.game.config.height) - 520;
 
     for (let i = 0; i < 4; i++) {
       const col = i % 2;
@@ -541,8 +544,22 @@ export class Game extends Scene {
       .setDepth(100)
       .setScale(0.4)
       .setFlipX(true);
-    this.movePlayer([this.imgHero], 200, "Expo");
-    await this.movePlayer([this.imgOpponent], 200, "Back");
+    let power = 200
+    if (this.imgHero!.x < -250) {
+      power = 600
+    } else if (this.imgHero!.x < 0) {
+      power = 500
+    } else if (this.imgHero!.x < 200) {
+      power = 400
+    } else if (this.imgHero!.x < 350) {
+      power = 300
+    } else if (this.imgHero!.x < 450) {
+      power = 200
+    } else {
+      power = 200
+    }
+    this.movePlayer([this.imgHero], power, "Expo");
+    await this.movePlayer([this.imgOpponent], power, "Back");
     this.indicator!.x = 40 + ((this.imgHero!.x + 550) / 200) * 100;
     await this.timeDelay(1000);
     this.imgOpponent!.x = this.imgHero!.x + 180
@@ -568,8 +585,23 @@ export class Game extends Scene {
       .setDepth(100)
       .setScale(0.4)
       .setFlipX(true);
-    this.movePlayer([this.imgHero], -200, "Back");
-    await this.movePlayer([this.imgOpponent], -200, "Expo");
+
+    let power = 200
+    if (this.imgHero!.x > 1150) {
+      power = 600
+    } else if (this.imgHero!.x > 900) {
+      power = 500
+    } else if (this.imgHero!.x > 700) {
+      power = 400
+    } else if (this.imgHero!.x > 550) {
+      power = 300
+    } else if (this.imgHero!.x > 450) {
+      power = 200
+    } else {
+      power = 200
+    }
+    this.movePlayer([this.imgHero], -power, "Back");
+    await this.movePlayer([this.imgOpponent], -power, "Expo");
     this.indicator!.x = 40 + ((this.imgHero!.x + 550) / 200) * 100;
     await this.timeDelay(1000);
     this.imgOpponent!.x = this.imgHero!.x + 180
