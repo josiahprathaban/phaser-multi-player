@@ -33,5 +33,40 @@
     "options": ["Strawberry", "Apple", "Grapes", "Banana"],
     "answer": "Banana",
     "theme": "market"
+  },
+  {
+    "questionTxt": "",
+    "questionImg": "imgAss1",
+    "options": ["Binding Tapes", "Books", "Scissors", "Foot Ruler"],
+    "answer": "Books",
+    "theme": "library"
+  },
+  {
+    "questionTxt": "",
+    "questionImg": "imgAss2",
+    "options": ["Binding Tapes", "Pens", "Scissors", "Foot Ruler"],
+    "answer": "Foot Ruler",
+    "theme": "library"
+  },
+  {
+    "questionTxt": "",
+    "questionImg": "imgAss3",
+    "options": ["Pens", "Books", "Scissors", "Foot Ruler"],
+    "answer": "Scissors",
+    "theme": "library"
+  },
+  {
+    "questionTxt": "",
+    "questionImg": "imgAss4",
+    "options": ["Binding Tapes", "Books", "Scissors", "Pens"],
+    "answer": "Binding Tapes",
+    "theme": "library"
+  },
+  {
+    "questionTxt": "",
+    "questionImg": "imgAss5",
+    "options": ["Binding Tapes", "Books", "Pens", "Foot Ruler"],
+    "answer": "Pens",
+    "theme": "library"
   }
 ]
