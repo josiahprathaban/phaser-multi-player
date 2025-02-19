@@ -1,5 +1,6 @@
 [
   {
+    "id": 1,
     "questionTxt": "",
     "questionImg": "imgFruit1",
     "options": ["Apple", "Strawberry", "Lemon", "Orange"],
@@ -7,6 +8,7 @@
     "theme": "market"
   },
   {
+    "id": 2,
     "questionTxt": "",
     "questionImg": "imgFruit2",
     "options": ["Banana", "Apple", "Lemon", "Orange"],
@@ -14,6 +16,7 @@
     "theme": "market"
   },
   {
+    "id": 3,
     "questionTxt": "",
     "questionImg": "imgFruit3",
     "options": ["Apple", "Banana", "Strawberry", "Orange"],
@@ -21,6 +24,7 @@
     "theme": "market"
   },
   {
+    "id": 4,
     "questionTxt": "",
     "questionImg": "imgFruit4",
     "options": ["Apple", "Banana", "Grapes", "Orange"],
@@ -28,6 +32,7 @@
     "theme": "market"
   },
   {
+    "id": 5,
     "questionTxt": "",
     "questionImg": "imgFruit5",
     "options": ["Strawberry", "Apple", "Grapes", "Banana"],
@@ -35,6 +40,7 @@
     "theme": "market"
   },
   {
+    "id": 6,
     "questionTxt": "",
     "questionImg": "imgAss1",
     "options": ["Binding Tapes", "Books", "Scissors", "Foot Ruler"],
@@ -42,6 +48,7 @@
     "theme": "library"
   },
   {
+    "id": 7,
     "questionTxt": "",
     "questionImg": "imgAss2",
     "options": ["Binding Tapes", "Pens", "Scissors", "Foot Ruler"],
@@ -49,6 +56,7 @@
     "theme": "library"
   },
   {
+    "id": 8,
     "questionTxt": "",
     "questionImg": "imgAss3",
     "options": ["Pens", "Books", "Scissors", "Foot Ruler"],
@@ -56,6 +64,7 @@
     "theme": "library"
   },
   {
+    "id": 9,
     "questionTxt": "",
     "questionImg": "imgAss4",
     "options": ["Binding Tapes", "Books", "Scissors", "Pens"],
@@ -63,6 +72,7 @@
     "theme": "library"
   },
   {
+    "id": 10,
     "questionTxt": "",
     "questionImg": "imgAss5",
     "options": ["Binding Tapes", "Books", "Pens", "Foot Ruler"],

@@ -69,6 +69,15 @@ export class Preloader extends Scene {
       }
     );
 
+    this.load.spritesheet(
+      "sptEnergy",
+      "energy.png",
+      {
+        frameWidth: 300,
+        frameHeight: 300,
+      }
+    );
+
   }
 
   create() {
