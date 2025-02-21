@@ -28,11 +28,13 @@ export class Preloader extends Scene {
     //  Load the assets for the game - Replace with your own assets
     this.load.setPath('assets/phaserGames');
 
+    this.load.image('backgroundX', 'bgx.png');
     this.load.image('background', 'bg.png');
     this.load.image('background2', 'bg2.png');
     this.load.image('imgHero', 'player-1.png');
     this.load.image('imgOpponent', 'player-2.png');
     this.load.image('imgQuestionBubble', 'question-bubble.png');
+    this.load.image('imgCard', 'card.png');
     this.load.image('imgOption', 'option.png');
     this.load.image('imgFruit1', 'fruit-1.png');
     this.load.image('imgFruit2', 'fruit-2.png');

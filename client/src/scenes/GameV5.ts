@@ -22,6 +22,7 @@ export class Game extends Scene {
   player: String = "";
   enterBtn: GameObjects.Text;
   prompt: GameObjects.Text;
+  indicator: GameObjects.Image;
   isGameEnded: Boolean = false;
   theme: String
   barWidth: number = 300;
@@ -79,9 +80,18 @@ export class Game extends Scene {
     });
 
     this.background = this.add
-      .image(0, 0, "backgroundX")
-      .setOrigin(0.35, 0.1).setScrollFactor(1,0);
-    
+      .image(0, 0, this.theme == "study" ? "background2" : "background")
+      .setOrigin(0.35, 0.3).setScrollFactor(1,0);
+    this.add
+      .rectangle(
+        Number(this.game.config.width) / 2,
+        100,
+        Number(this.game.config.width) - 80,
+        30,
+        0xffffff
+      )
+      .setScrollFactor(0);
+
     this.add
       .rectangle(
         Number(this.game.config.width) / 2,
@@ -157,6 +167,13 @@ export class Game extends Scene {
       )
       .setScrollFactor(0);
 
+
+    this.indicator = this.add
+      .image(Number(this.game.config.width) / 2, 70, "imgIndicator")
+      .setOrigin(0.5)
+      .setScale(0.5)
+      .setScrollFactor(0)
+      .setAlpha(0);
 
     this.imgHero = this.add
       .image(200, 1000, "imgHero")
@@ -373,6 +390,7 @@ export class Game extends Scene {
       -90,
       40
     ).setZoom(1);
+    this.indicator.setAlpha(1);
     this.heroMove();
     this.opponentMove();
   }
@@ -788,6 +806,7 @@ export class Game extends Scene {
     await this.movePlayer([this.imgOpponent], power, "Back");
     this.sptEnergyHero?.setAlpha(0)
     this.txtHero?.setAlpha(0)
+    this.indicator!.x = 40 + ((this.imgHero!.x + 550) / 200) * 100;
     await this.timeDelay(1000);
     this.imgOpponent!.x = this.imgHero!.x + 180
     this.imgMaskHero.destroy();
@@ -869,6 +888,7 @@ export class Game extends Scene {
     await this.movePlayer([this.imgOpponent], -power, "Expo");
     this.sptEnergyOpponent?.setAlpha(0)
     this.txtOpponent?.setAlpha(0)
+    this.indicator!.x = 40 + ((this.imgHero!.x + 550) / 200) * 100;
     await this.timeDelay(1000);
     this.imgOpponent!.x = this.imgHero!.x + 180
     this.imgMaskHero.destroy();
@@ -904,16 +924,16 @@ export class Game extends Scene {
   cardsChoice() {
     const randomItems = this.questions.sort(() => Math.random() - 0.5).slice(0, 3);
     randomItems.forEach((element, i) => {
-      const imgCard = this.add
-        .image(0, 0, "imgCard")
+      const imgQuestionBubble = this.add
+        .image(0, 0, "imgQuestionBubble")
         .setDepth(100)
-        .setScale(1).setScrollFactor(0);
+        .setScale(0.5).setScrollFactor(0);
       const imgQuestionImage = this.add
         .image(0, 0, element.questionImg)
         .setDepth(100)
-        .setScale(0.35).setScrollFactor(0);
+        .setScale(0.2).setScrollFactor(0);
       const powerTxt = this.add
-        .text(70, -180, element.theme == this.theme ? "X2" : "X1", {
+        .text(50, -100, element.theme == this.theme ? "X2" : "X1", {
           fontFamily: "Arial",
           fontSize: "32px",
           backgroundColor: "#a64245",
@@ -921,22 +941,22 @@ export class Game extends Scene {
         })
       const questionContainer = this.add
         .container(i * 340 + 200, 1600, [
-          imgCard,
+          imgQuestionBubble,
           imgQuestionImage,
           powerTxt
         ]).setScrollFactor(0);
 
-      imgCard.setInteractive({ useHandCursor: true });
+      imgQuestionBubble.setInteractive({ useHandCursor: true });
 
-      imgCard.on("pointerover", () => {
+      imgQuestionBubble.on("pointerover", () => {
         questionContainer.setScale(1.1);
       });
 
-      imgCard.on("pointerout", () => {
+      imgQuestionBubble.on("pointerout", () => {
         questionContainer.setScale(1);
       });
 
-      imgCard.on("pointerdown", async () => {
+      imgQuestionBubble.on("pointerdown", async () => {
         this.questionChoices.forEach(elementx => {
           elementx.destroy()
         });
