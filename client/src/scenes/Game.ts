@@ -44,6 +44,7 @@ export class Game extends Scene {
   questionHistoryOpponent: Array<any> = []
   questionHistoryImagesOpponent: Array<GameObjects.Container> = [];
   txtOpponent: GameObjects.Text;
+  ring: GameObjects.Image;
 
   constructor() {
     super("Game");
@@ -79,22 +80,25 @@ export class Game extends Scene {
     });
 
     this.background = this.add
-      .image(0, 0, "backgroundX")
-      .setOrigin(0.35, 0.1).setScrollFactor(1,0);
-    
+      .image(540, 0, "backgroundX")
+      .setOrigin(0.5, 0).setScrollFactor(1, 0);
+    // this.ring = this.add
+    //   .image(540, 600, "imgRing")
+    //   .setOrigin(0.5, 0).setScrollFactor(1, 0);
+
+    // this.add
+    //   .rectangle(
+    //     Number(this.game.config.width) / 2,
+    //     1260,
+    //     Number(this.game.config.width),
+    //     600,
+    //     0xf9dc80
+    //   )
+    //   .setScrollFactor(0);
     this.add
       .rectangle(
         Number(this.game.config.width) / 2,
-        1650,
-        Number(this.game.config.width),
-        600,
-        0xf9dcb0
-      )
-      .setScrollFactor(0);
-    this.add
-      .rectangle(
-        Number(this.game.config.width) / 2,
-        1240,
+        1070,
         Number(this.game.config.width),
         220,
         0xdb4b31
@@ -104,7 +108,7 @@ export class Game extends Scene {
     this.add
       .rectangle(
         100,
-        1265,
+        1095,
         80,
         100,
         0xffffff
@@ -113,7 +117,7 @@ export class Game extends Scene {
     this.add
       .rectangle(
         200,
-        1265,
+        1095,
         80,
         100,
         0xffffff
@@ -122,7 +126,7 @@ export class Game extends Scene {
     this.add
       .rectangle(
         300,
-        1265,
+        1095,
         80,
         100,
         0xffffff
@@ -132,7 +136,7 @@ export class Game extends Scene {
     this.add
       .rectangle(
         Number(this.game.config.width) - 100,
-        1265,
+        1095,
         80,
         100,
         0xffffff
@@ -141,7 +145,7 @@ export class Game extends Scene {
     this.add
       .rectangle(
         Number(this.game.config.width) - 200,
-        1265,
+        1095,
         80,
         100,
         0xffffff
@@ -150,7 +154,7 @@ export class Game extends Scene {
     this.add
       .rectangle(
         Number(this.game.config.width) - 300,
-        1265,
+        1095,
         80,
         100,
         0xffffff
@@ -159,7 +163,7 @@ export class Game extends Scene {
 
 
     this.imgHero = this.add
-      .image(200, 1000, "imgHero")
+      .image(200, 740, "imgHero")
       .setDepth(100)
       .setScale(1.5)
       .setFlipX(true)
@@ -189,7 +193,7 @@ export class Game extends Scene {
 
 
     this.imgOpponent = this.add
-      .image(Number(this.game.config.width) - 200, 1000, "imgOpponent")
+      .image(Number(this.game.config.width) - 200, 740, "imgOpponent")
       .setDepth(99)
       .setScale(1.5)
       .setAlpha(0);
@@ -265,7 +269,7 @@ export class Game extends Scene {
     this.heroProgressBar = this.add.graphics().setDepth(999).setScrollFactor(0);
 
     this.heroProgressBarBg = this.add.rectangle(
-      200, 1180,
+      200, 1010,
       this.barWidth + 12, this.barHeight + 10,
       0xffffff
     ).setScrollFactor(0)
@@ -273,7 +277,7 @@ export class Game extends Scene {
     this.opponentProgressBar = this.add.graphics().setDepth(999).setScrollFactor(0);
 
     this.opponentProgressBarBg = this.add.rectangle(
-      Number(this.game.config.width) - 200, 1180,
+      Number(this.game.config.width) - 200, 1010,
       this.barWidth + 12, this.barHeight + 10,
       0xffffff
     ).setScrollFactor(0)
@@ -290,7 +294,7 @@ export class Game extends Scene {
         this.heroProgress += 1 / (duration * 50);
         this.heroProgressBar.clear();
         this.heroProgressBar.fillStyle(0x00ff00, 1);
-        this.heroProgressBar.fillRect(200 - this.barWidth / 2, 1173, this.barWidth * this.heroProgress, this.barHeight);
+        this.heroProgressBar.fillRect(200 - this.barWidth / 2, 1003, this.barWidth * this.heroProgress, this.barHeight);
 
         if (this.heroProgress >= 1) {
           // this.heroProgressBar.clear()
@@ -315,7 +319,7 @@ export class Game extends Scene {
         this.opponentProgress += 1 / (duration * 50);
         this.opponentProgressBar.clear();
         this.opponentProgressBar.fillStyle(0xff0000, 1);
-        this.opponentProgressBar.fillRect(Number(this.game.config.width) - 200 - this.barWidth / 2, 1173, this.barWidth * this.opponentProgress, this.barHeight);
+        this.opponentProgressBar.fillRect(Number(this.game.config.width) - 200 - this.barWidth / 2, 1003, this.barWidth * this.opponentProgress, this.barHeight);
 
         if (this.opponentProgress >= 1) {
           // this.opponentProgressBar.clear()
@@ -371,7 +375,7 @@ export class Game extends Scene {
       undefined,
       undefined,
       -90,
-      40
+      -224
     ).setZoom(1);
     this.heroMove();
     this.opponentMove();
@@ -582,7 +586,7 @@ export class Game extends Scene {
     const buttonSpacingX = Number(this.game.config.width) / 4 - 10;
     const buttonSpacingY = 200;
     const startX = Number(this.game.config.width) / 2 - buttonSpacingX;
-    const startY = Number(this.game.config.height) - 420;
+    const startY = Number(this.game.config.height) - 600;
 
     for (let i = 0; i < 4; i++) {
       const col = i % 2;
@@ -741,9 +745,9 @@ export class Game extends Scene {
     await this.timeDelay(500);
     await this.destroyQuestion()
 
-    let basePower = this.questions[this.currentQuestion].theme == this.theme ? 400 : 200
+    let basePower = this.questions[this.currentQuestion].theme == this.theme ? 200 : 100
     if (this.questionHistoryHero.length == 3 && this.hasSameThemeAndCorrect(this.questionHistoryHero)) {
-      basePower = 2.5 * basePower
+      basePower = 3 * basePower
       this.questionHistoryHero = []
       await this.chainAttackAnimation(this.imgHero, this.questionHistoryImagesHero)
       this.sptEnergyHero?.setAlpha(1)
@@ -822,9 +826,9 @@ export class Game extends Scene {
     this.questionBubble?.setAlpha(0.5);
     this.optionButtons.forEach((option) => { option.setAlpha(0.5), option.getByName("image").removeInteractive() });
 
-    let basePower = isX2 ? 400 : 200
+    let basePower = isX2 ? 200 : 100
     if (this.questionHistoryOpponent.length == 3 && this.hasSameThemeAndCorrect(this.questionHistoryOpponent)) {
-      basePower = 2 * basePower
+      basePower = 2.5 * basePower
       this.questionHistoryOpponent = []
       await this.chainAttackAnimation(this.imgOpponent, this.questionHistoryImagesOpponent)
       this.sptEnergyOpponent?.setAlpha(1)
@@ -898,7 +902,7 @@ export class Game extends Scene {
       ])
       .setScale(0);
     await this.timeDelay(500);
-    await this.bubbleUp([this.questionBubble], 0.9, 0.9);
+    await this.bubbleUp([this.questionBubble], 0.7, 0.7);
   }
 
   cardsChoice() {
@@ -920,7 +924,7 @@ export class Game extends Scene {
           padding: { x: 10, y: 5 },
         })
       const questionContainer = this.add
-        .container(i * 340 + 200, 1600, [
+        .container(i * 340 + 200, 1450, [
           imgCard,
           imgQuestionImage,
           powerTxt
@@ -1036,7 +1040,7 @@ export class Game extends Scene {
         .setDepth(100)
         .setScale(0.1).setScrollFactor(0);
       const questionContainer = this.add
-        .container(i * 100 + 100, 1265, [
+        .container(i * 100 + 100, 1095, [
           imgQuestionImage,
           imgResult
         ])
@@ -1060,7 +1064,7 @@ export class Game extends Scene {
         .setDepth(100)
         .setScale(0.1).setScrollFactor(0);
       const questionContainer = this.add
-        .container(i * 100 + Number(this.game.config.width) - 300, 1265, [
+        .container(i * 100 + Number(this.game.config.width) - 300, 1095, [
           imgQuestionImage,
           imgResult
         ])
