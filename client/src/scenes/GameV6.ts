@@ -332,17 +332,14 @@ export class Game extends Scene {
           if (!this.isGameEnded) {
             this.imgOpponentThinking!.setAlpha(0);
             if (Math.random() < Math.min(Number(bot_vocab_accuracy), 1)) {
-              if (this.questionHistoryOpponent.length > 0 && this.questionHistoryOpponent[this.questionHistoryOpponent.length - 1].theme == q.theme) {
-                this.questionHistoryOpponent.push(q)
-              } else {
-                this.questionHistoryOpponent = []
-                this.questionHistoryOpponent.push(q)
-              }
+              q.isCorrect = true
+              this.enqueue(this.questionHistoryOpponent, q);
               this.updateQuestionHistoryOpponent()
               this.isOpponentLastQuestionCorrect = true
               await this.opponentAttack(q.theme == this.theme);
             } else {
-              this.questionHistoryOpponent = []
+              q.isCorrect = false
+              this.enqueue(this.questionHistoryOpponent, q);
               this.updateQuestionHistoryOpponent()
               this.isOpponentLastQuestionCorrect = false
               if (this.imgMaskOpponent) {
@@ -656,6 +653,14 @@ export class Game extends Scene {
   }
 
   async clickOption(optionIndex: number) {
+    let q = this.questions[
+      this.currentQuestion
+    ]
+    q["isCorrect"] = this.questions[this.currentQuestion].options[optionIndex] ===
+      this.questions[this.currentQuestion].answer
+    this.enqueue(this.questionHistoryHero, q);
+    this.updateQuestionHistoryHero()
+
     if (
       this.questions[this.currentQuestion].options[optionIndex] ===
       this.questions[this.currentQuestion].answer
@@ -685,19 +690,9 @@ export class Game extends Scene {
       this.questions[this.currentQuestion].options[optionIndex] ===
       this.questions[this.currentQuestion].answer
     ) {
-      if (this.questionHistoryHero.length > 0 && this.questionHistoryHero[this.questionHistoryHero.length - 1].theme == this.questions[this.currentQuestion].theme) {
-        this.questionHistoryHero.push(this.questions[this.currentQuestion])
-      } else {
-        this.questionHistoryHero = []
-        this.questionHistoryHero.push(this.questions[this.currentQuestion])
-      }
-
-      this.updateQuestionHistoryHero()
       this.isHeroLastQuestionCorrect = true
       await this.heroAttack();
     } else {
-      this.questionHistoryHero = []
-      this.updateQuestionHistoryHero()
       this.isHeroLastQuestionCorrect = false
       if (this.imgMaskHero) {
         this.imgMaskHero.destroy();
@@ -751,7 +746,7 @@ export class Game extends Scene {
     await this.destroyQuestion()
 
     let basePower = this.questions[this.currentQuestion].theme == this.theme ? 200 : 100
-    if (this.questionHistoryHero.length == 3 && this.hasSameTheme(this.questionHistoryHero)) {
+    if (this.questionHistoryHero.length == 3 && this.hasSameThemeAndCorrect(this.questionHistoryHero)) {
       basePower = 3 * basePower
       this.questionHistoryHero = []
       await this.chainAttackAnimation(this.imgHero, this.questionHistoryImagesHero)
@@ -832,7 +827,7 @@ export class Game extends Scene {
     this.optionButtons.forEach((option) => { option.setAlpha(0.5), option.getByName("image").removeInteractive() });
 
     let basePower = isX2 ? 200 : 100
-    if (this.questionHistoryOpponent.length == 3 && this.hasSameTheme(this.questionHistoryOpponent)) {
+    if (this.questionHistoryOpponent.length == 3 && this.hasSameThemeAndCorrect(this.questionHistoryOpponent)) {
       basePower = 2.5 * basePower
       this.questionHistoryOpponent = []
       await this.chainAttackAnimation(this.imgOpponent, this.questionHistoryImagesOpponent)
@@ -1040,7 +1035,8 @@ export class Game extends Scene {
         .setDepth(100)
         .setScale(0.1).setScrollFactor(0);
       const imgResult = this.add
-        .image(20, 30, "imgCorrect")
+        .image(20, 30, element.isCorrect ? "imgCorrect"
+          : "imgWrong")
         .setDepth(100)
         .setScale(0.1).setScrollFactor(0);
       const questionContainer = this.add
@@ -1063,7 +1059,8 @@ export class Game extends Scene {
         .setDepth(100)
         .setScale(0.1).setScrollFactor(0);
       const imgResult = this.add
-        .image(20, 30, "imgCorrect")
+        .image(20, 30, element.isCorrect ? "imgCorrect"
+          : "imgWrong")
         .setDepth(100)
         .setScale(0.1).setScrollFactor(0);
       const questionContainer = this.add
@@ -1079,13 +1076,20 @@ export class Game extends Scene {
 
   // Util functions
 
-  hasSameTheme(arr) {
+  hasSameThemeAndCorrect(arr) {
     if (arr.length === 0) return false; // Handle empty array case
-    return arr.every(item => item.theme === arr[0].theme);
+    return arr.every(item => item.theme === arr[0].theme && item.isCorrect === true);
   }
 
   getRandomItem(arr) {
     return arr[Math.floor(Math.random() * arr.length)];
+  }
+
+  enqueue(queue, item, maxSize = 3) {
+    if (queue.length >= maxSize) {
+      queue.shift();
+    }
+    queue.push(item);
   }
 
   shuffleArray(array) {
