@@ -30,6 +30,7 @@ export class Preloader extends Scene {
 
     this.load.image('backgroundX', 'blk.png');
     this.load.image('imgRing', 'ringx.png');
+    this.load.image('imgFruits', 'fruits.png');
     this.load.image('background', 'bg.png');
     this.load.image('background2', 'bg2.png');
     this.load.image('imgHero', 'player-1.png');

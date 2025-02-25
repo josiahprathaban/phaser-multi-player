@@ -45,6 +45,7 @@ export class Game extends Scene {
   questionHistoryImagesOpponent: Array<GameObjects.Container> = [];
   txtOpponent: GameObjects.Text;
   ring: GameObjects.Image;
+  themeTxtGrp: Array<any>;
 
   constructor() {
     super("Game");
@@ -82,6 +83,21 @@ export class Game extends Scene {
     this.background = this.add
       .image(540, 0, "backgroundX")
       .setOrigin(0.5, 0).setScrollFactor(1, 0);
+      this.add
+      .image(540, 90, "imgFruits")
+      .setOrigin(0.5, 0).setScrollFactor(1, 0).setScale(0.6);
+
+    this.add
+      .text(390, 110, "theme", {
+        fontFamily: "Arial",
+        fontSize: "32px",
+      }).setDepth(2000).setOrigin(0.5)
+    this.add
+      .text(Number(this.game.config.width) / 2, 310, "Fruits", {
+        fontFamily: "Arial",
+        fontSize: "64px",
+      }).setDepth(2000).setOrigin(0.5)
+    this.generateThemeTxt("Fruits")
     // this.ring = this.add
     //   .image(540, 600, "imgRing")
     //   .setOrigin(0.5, 0).setScrollFactor(1, 0);
@@ -283,6 +299,25 @@ export class Game extends Scene {
     ).setScrollFactor(0)
 
 
+  }
+
+  generateThemeTxt(theme) {
+    this.themeTxtGrp = []
+    for (let index = 0; index < 15; index++) {
+      const element = this.add
+        .text(index * 150, 620, theme, {
+          fontFamily: "Arial",
+          fontSize: "32px",
+        })
+      this.themeTxtGrp.push(element)
+    }
+    this.tweens.add({
+      targets: this.themeTxtGrp,
+      x: '-=900',
+      ease: "Linear",
+      duration: 10000,
+      repeat: -1,
+    });
   }
 
   startHeroTimer(duration: number) {
